@@ -28,15 +28,16 @@ class Parens a where
   -- | @Loc a@ is the type of names for the recursive locations in @a@.
   type Loc a
   
-  -- | 'parenLoc' maps each @a@ to a list of locations that permit it to
-  -- be pretty printed without enclosing parentheses.
-  parenLoc :: a -> [Loc a]
+  -- | 'parenLoc' maps each @a@ and location to a Bool indicating
+  -- whether that @a@ in that location may be pretty printed without
+  -- enclosing parentheses.
+  parenLoc :: a -> Loc a -> Bool
   
   -- | 'parenRec' pretty prints its argument without enclosing parentheses.
   parenRec :: a -> String
 
 
-type Pretty a = (Parens a, Eq (Loc a))
+type Pretty = Parens
 
 
 -- | The 'parenthesize' function pretty prints its argument, inserting parens
@@ -51,7 +52,7 @@ parenthesize l x =
   in case l of
        Nothing -> rec
        Just loc
-         | loc `elem` parenLoc x -> rec
+         | parenLoc x loc -> rec
          | otherwise -> "(" ++ rec ++ ")"
 
 
