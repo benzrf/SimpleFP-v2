@@ -77,7 +77,7 @@ instance MonadUnify TermF Elaborator where
        unless (length as1 == length as2)
          $ throwError $ "Mismatching constructor arg lengths between "
                          ++ pretty (In (Con c1 as1)) ++ " and "
-                         ++ pretty (In (Con c2 as1))
+                         ++ pretty (In (Con c2 as2))
        let (plics1,as1') = unzip as1
            (plics2,as2') = unzip as2
        unless (plics1 == plics2)
