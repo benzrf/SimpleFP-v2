@@ -149,7 +149,7 @@ instantiateTelescopeNames (Telescope ascs) ns = cs
 
 data BindingTelescope a
   = BindingTelescope [a] a
-  deriving (Functor,Foldable,Traversable)
+  deriving (Functor,Foldable,Traversable,Show)
 
 
 instance Eq1 BindingTelescope where

@@ -46,7 +46,7 @@ data TermF r
   | App Plicity r r
   | Con String [(Plicity,r)]
   | Case [r] (CaseMotiveF r) [ClauseF r]
-  deriving (Functor,Foldable)
+  deriving (Functor,Foldable,Show)
 
 
 type Term = ABT TermF
@@ -63,7 +63,7 @@ type Term = ABT TermF
 -- a very good resource.
 
 newtype CaseMotiveF r = CaseMotive (BindingTelescope r)
-  deriving (Functor,Foldable)
+  deriving (Functor,Foldable,Show)
 
 
 type CaseMotive = CaseMotiveF (Scope TermF)
@@ -71,7 +71,7 @@ type CaseMotive = CaseMotiveF (Scope TermF)
 
 data ClauseF r
   = Clause [PatternF r] r
-  deriving (Functor,Foldable)
+  deriving (Functor,Foldable,Show)
 
 
 type Clause = ClauseF (Scope TermF)
@@ -99,7 +99,7 @@ data PatternFF a r
   = ConPat String [(Plicity,r)]
   | AssertionPat a
   | MakeMeta
-  deriving (Functor,Foldable,Traversable)
+  deriving (Functor,Foldable,Traversable,Show)
 
 
 instance Bifunctor PatternFF where
@@ -134,7 +134,7 @@ instance Bizippable PatternFF where
 -- functoriality and foldability of 'PatternF', meaning we can use it as a
 -- sub-sort of term shape. This ought to be generic, but Haskell can'
 
-newtype PatternF a = PatternF { unwrapPatternF :: Scope (PatternFF a) }
+newtype PatternF a = PatternF { unwrapPatternF :: Scope (PatternFF a) } deriving (Show)
 
 
 type Pattern = ABT (PatternFF Term)
@@ -240,7 +240,7 @@ data TermParenLoc
   | LamBody | AppFun | AppArg Plicity
   | ConArg Plicity Int | CaseArg Int | MotiveArg Int | MotiveRet | ClauseBody Int
   | AssertionPatArg
-  deriving (Eq, Ord)
+  deriving (Eq, Ord, Show)
 
 
 instance Parens Term where
