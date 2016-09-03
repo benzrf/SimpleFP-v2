@@ -82,7 +82,7 @@ matchPattern (In (ConPat c ps)) (In (Con c' as))
                  then matchPattern (body psc) (body asc)
                  else Failure
   | otherwise = Failure
-matchPattern (In (AssertionPat _)) v = Success [v]
+matchPattern (In (AssertionPat _)) v = Success []
 matchPattern _ _ = Unknown
 
 matchPatterns :: [Pattern] -> [Term] -> MatchResult [Term]
