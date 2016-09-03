@@ -77,7 +77,7 @@ matchPattern (In (ConPat c ps)) (In (Con c' as))
   | c == c' && length ps == length as =
     fmap concat (zipWithM matchPattern (map body ps) (map body as))
   | otherwise = Failure
-matchPattern (In (AssertionPat _)) v = Success [v]
+matchPattern (In (AssertionPat _)) v = Success []
 matchPattern _ _ = Unknown
 
 matchPatterns :: [Pattern] -> [Term] -> MatchResult [Term]
