@@ -46,7 +46,7 @@ data TermF r
   | App r r
   | Con String [r]
   | Case [r] (CaseMotiveF r) [ClauseF r]
-  deriving (Functor,Foldable)
+  deriving (Functor,Foldable,Show)
 
 
 type Term = ABT TermF
@@ -63,7 +63,7 @@ type Term = ABT TermF
 -- a very good resource.
 
 newtype CaseMotiveF r = CaseMotive (BindingTelescope r)
-  deriving (Functor,Foldable)
+  deriving (Functor,Foldable,Show)
 
 
 type CaseMotive = CaseMotiveF (Scope TermF)
@@ -71,7 +71,7 @@ type CaseMotive = CaseMotiveF (Scope TermF)
 
 data ClauseF r
   = Clause [PatternF r] r
-  deriving (Functor,Foldable)
+  deriving (Functor,Foldable,Show)
 
 
 type Clause = ClauseF (Scope TermF)
@@ -98,7 +98,7 @@ type Clause = ClauseF (Scope TermF)
 data PatternFF a r
   = ConPat String [r]
   | AssertionPat a
-  deriving (Functor,Foldable,Traversable)
+  deriving (Functor,Foldable,Traversable,Show)
 
 
 instance Bifunctor PatternFF where
@@ -126,7 +126,7 @@ instance Bizippable PatternFF where
 -- functoriality and foldability of 'PatternF', meaning we can use it as a
 -- sub-sort of term shape. This ought to be generic, but Haskell can'
 
-newtype PatternF a = PatternF { unwrapPatternF :: Scope (PatternFF a) }
+newtype PatternF a = PatternF { unwrapPatternF :: Scope (PatternFF a) } deriving (Show)
 
 
 type Pattern = ABT (PatternFF Term)
@@ -227,48 +227,34 @@ data TermParenLoc
   = AnnTerm | AnnType
   | FunArg | FunRet
   | LamBody | AppFun | AppArg
-  | ConArg | CaseArg | MotiveArg | MotiveRet | ClauseBody
+  | ConArg Int | CaseArg Int | MotiveArg Int | MotiveRet | ClauseBody Int
   | AssertionPatArg
-  deriving (Eq)
+  deriving (Eq,Ord,Show)
 
 
 instance Parens Term where
   type Loc Term = TermParenLoc
   
-  parenLoc (Var _) =
-    [AnnTerm,AnnType,FunArg,FunRet,LamBody,AppFun,AppArg
-    ,ConArg,CaseArg,MotiveArg,MotiveRet,ClauseBody,AssertionPatArg
-    ]
-  parenLoc (In (Defined _)) =
-    [AnnTerm,AnnType,FunArg,FunRet,LamBody,AppFun,AppArg
-    ,ConArg,CaseArg,MotiveArg,MotiveRet,ClauseBody,AssertionPatArg
-    ]
-  parenLoc (In (Ann _ _)) =
-    [FunArg,FunRet,LamBody,CaseArg,MotiveRet,ClauseBody]
-  parenLoc (In Type) =
-    [AnnTerm,AnnType,FunArg,FunRet,LamBody,AppFun,AppArg
-    ,ConArg,CaseArg,MotiveArg,MotiveRet,ClauseBody,AssertionPatArg
-    ]
-  parenLoc (In (Fun _ _)) =
-    [AnnType,FunArg,FunRet,LamBody,CaseArg,MotiveArg,MotiveRet,ClauseBody]
-  parenLoc (In (Lam _)) =
-    [AnnType,FunArg,FunRet,LamBody,CaseArg,MotiveArg,MotiveRet,ClauseBody]
-  parenLoc (In (App _ _)) =
-    [AnnTerm,AnnType,FunArg,FunRet,LamBody,AppFun,CaseArg,MotiveArg
-    ,MotiveRet ,ClauseBody
-    ]
-  parenLoc (In (Con _ [])) =
-    [AnnTerm,AnnType,FunArg,FunRet,LamBody,AppFun,AppArg
-    ,ConArg,CaseArg,MotiveArg,MotiveRet,ClauseBody,AssertionPatArg
-    ]
-  parenLoc (In (Con _ _)) =
-    [AnnTerm,AnnType,FunArg,FunRet,LamBody,AppFun,CaseArg,MotiveArg
-    ,MotiveRet,ClauseBody
-    ]
-  parenLoc (In (Case _ _ _)) =
-    [AnnTerm,AnnType,FunArg,FunRet,LamBody,AppFun,AppArg
-    ,ConArg,CaseArg,MotiveArg,MotiveRet,ClauseBody,AssertionPatArg
-    ]
+  parenLoc (Var _) _ = True
+  parenLoc (In (Defined _)) _ = True
+  parenLoc (In (Ann _ _)) l = case l of
+    CaseArg _ -> True; ClauseBody _ -> True;
+    _ -> l `elem` [FunArg,FunRet,LamBody,MotiveRet]
+  parenLoc (In Type) _ = True
+  parenLoc (In (Fun _ _)) l = case l of
+    CaseArg _ -> True; MotiveArg _ -> True; ClauseBody _ -> True;
+    _ -> l `elem` [AnnType,FunArg,FunRet,LamBody,MotiveRet]
+  parenLoc (In (Lam _)) l = case l of
+    CaseArg _ -> True; MotiveArg _ -> True; ClauseBody _ -> True;
+    _ -> l `elem` [AnnType,FunArg,FunRet,LamBody,MotiveRet]
+  parenLoc (In (App _ _)) l = case l of
+    CaseArg _ -> True; MotiveArg _ -> True; ClauseBody _ -> True;
+    _ -> l `elem` [AnnTerm,AnnType,FunArg,FunRet,LamBody,AppFun,MotiveRet]
+  parenLoc (In (Con _ [])) _ = True
+  parenLoc (In (Con _ _)) l = case l of
+    CaseArg _ -> True; MotiveArg _ -> True; ClauseBody _ -> True;
+    _ -> l `elem` [AnnTerm,AnnType,FunArg,FunRet,LamBody,AppFun,MotiveRet]
+  parenLoc (In (Case _ _ _)) _ = True
   
   parenRec (Var v) =
     name v
@@ -290,18 +276,18 @@ instance Parens Term where
       ++ " " ++ parenthesize (Just AppArg) (instantiate0 a)
   parenRec (In (Con c [])) = c
   parenRec (In (Con c as)) =
-    c ++ " " ++ unwords (map (parenthesize (Just ConArg).instantiate0) as)
+    c ++ " " ++ unwords (zipWith (\n -> parenthesize (Just (ConArg n)).instantiate0) [0..] as)
   parenRec (In (Case ms mot cs)) =
     "case "
       ++ intercalate
            " || "
-           (map (parenthesize (Just CaseArg).instantiate0) ms)
+           (zipWith (\n -> parenthesize (Just (CaseArg n)).instantiate0) [0..] ms)
       ++ " motive " ++ pretty mot
-      ++ " of " ++ intercalate " | " (map auxClause cs) ++ " end"
+      ++ " of " ++ intercalate " | " (zipWith auxClause [0..] cs) ++ " end"
     where
-      auxClause (Clause pscs sc)
+      auxClause n (Clause pscs sc)
         = intercalate " || " (map (pretty.body.unwrapPatternF.fmap body) pscs)
-            ++ " -> " ++ parenthesize (Just ClauseBody) (body sc)
+            ++ " -> " ++ parenthesize (Just (ClauseBody n)) (body sc)
 
 
 
@@ -317,7 +303,7 @@ instance Eq CaseMotiveParenLoc where
 instance Parens CaseMotive where
   type Loc CaseMotive = CaseMotiveParenLoc
   
-  parenLoc _ = []
+  parenLoc _ _ = False
   
   parenRec (CaseMotive (BindingTelescope ascs bsc)) =
     binders ++ " || " ++ pretty (body bsc)
@@ -343,10 +329,8 @@ data PatternParenLoc
 instance Parens Pattern where
   type Loc Pattern = PatternParenLoc
   
-  parenLoc (Var _)               = [ConPatArg]
-  parenLoc (In (ConPat _ []))    = [ConPatArg]
-  parenLoc (In (ConPat _ _))      = []
-  parenLoc (In (AssertionPat _)) = [ConPatArg]
+  parenLoc (In (ConPat _ (_:_))) _ = False
+  parenLoc _ _ = True
   
   parenRec (Var v) =
     name v

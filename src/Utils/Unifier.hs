@@ -69,7 +69,7 @@ completeSubstitution subsl subs' =
 -- | Given a way to get the context and a way to get the current substitution,
 --  we can substitute into it with the current substitution.
 
-substituteContext :: (Eq a, Functor f, Foldable f, MonadState s m)
+substituteContext :: (Functor f, Foldable f, MonadState s m)
                   => Lens' s (Substitution f)
                   -> Lens' s [(a, ABT f)]
                   -> m ()
@@ -88,7 +88,7 @@ substituteContext subsl ctxl =
 -- instead of just a term. This is necessary for fancier type theories that
 -- have judgments other than @A true@.
 
-substituteContextJ :: (Eq a, Functor f, Foldable f, MonadState s m, Functor j)
+substituteContextJ :: (Functor f, Foldable f, MonadState s m, Functor j)
                    => Lens' s (Substitution f)
                    -> Lens' s [(a, j (ABT f))]
                    -> m ()
@@ -104,7 +104,7 @@ substituteContextJ subsl ctxl =
 -- | Given some new substitutions, we can add them to the existing
 -- substitutions and in the process update a context-like value.
 
-updateSubstitution :: (Eq a, Functor f, Foldable f, MonadState s m)
+updateSubstitution :: (Functor f, Foldable f, MonadState s m)
                    => Lens' s (Substitution f)
                    -> Lens' s [(a,ABT f)]
                    -> Substitution f
@@ -121,7 +121,7 @@ updateSubstitution subsl ctxl subs =
 -- substitutions and in the process update a context-like value using any
 -- functorial judgment.
 
-updateSubstitutionJ :: ( Eq a, Functor f, Foldable f
+updateSubstitutionJ :: ( Functor f, Foldable f
                        , MonadState s m, Functor j
                        )
                      => Lens' s (Substitution f)
@@ -234,7 +234,7 @@ solve eqs0 = go eqs0 []
 -- relevant equations to produce some new substitutions, and then update
 -- the substitutions to ensure that the new substitutions are accounted for.
 
-unify :: ( Eq a, Functor f, Foldable f, Pretty (ABT f)
+unify :: ( Functor f, Foldable f, Pretty (ABT f)
          , MonadUnify f m, MonadError String m, MonadState s m
          )
       => Lens' s (Substitution f)
@@ -258,7 +258,7 @@ unify subsl ctxl l r =
 -- the substitutions to ensure that the new substitutions are accounted for.
 -- This version works for arbitrary functorial judgments.
 
-unifyJ :: ( Eq a, Functor f, Foldable f, Pretty (ABT f)
+unifyJ :: ( Functor f, Foldable f, Pretty (ABT f)
           , MonadUnify f m, MonadError String m, MonadState s m, Functor j
           )
        => Lens' s (Substitution f)

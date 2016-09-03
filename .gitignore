@@ -13,3 +13,5 @@ TAGS
 .DS_Store
 *~
 *#
+default.nix
+.*.swp

@@ -35,7 +35,7 @@ data Telescope a
 
 
 instance Eq1 Telescope where
-  eq1 (Telescope as) (Telescope as') = as == as'
+  liftEq f (Telescope as) (Telescope as') = and (zipWith f as as')
 
 
 namesTelescope :: Telescope (Scope f) -> [String]
@@ -149,12 +149,12 @@ instantiateTelescopeNames (Telescope ascs) ns = cs
 
 data BindingTelescope a
   = BindingTelescope [a] a
-  deriving (Functor,Foldable,Traversable)
+  deriving (Functor,Foldable,Traversable,Show)
 
 
 instance Eq1 BindingTelescope where
-  eq1 (BindingTelescope as b) (BindingTelescope as' b') =
-    as == as' && b == b'
+  liftEq f (BindingTelescope as b) (BindingTelescope as' b') =
+    and (zipWith f as as') && f b b'
 
 
 namesBindingTelescope :: BindingTelescope (Scope f) -> [String]
